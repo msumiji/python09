@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from enum import Enum
 from datetime import datetime
+from typing import Any
 
 
 class ContactType(Enum):
@@ -9,7 +10,8 @@ class ContactType(Enum):
     PHYSICAL = "physical"
     TELE = "telepathic"
 
-class Station(BaseModel):
+
+class AlienContact(BaseModel):
     contact_id: str = Field(min_length=5, max_length=15, pattern=r"^AC")
     timestamp: datetime
     location: str = Field(min_length=3, max_length=100)
@@ -21,10 +23,10 @@ class Station(BaseModel):
     is_verified: bool = False
 
     @model_validator(mode='after')
-    def baka(self) -> "Station":
+    def validate_contact_rules(self) -> "AlienContact":
         if (
             self.contact_type == ContactType.PHYSICAL
-            and self.is_verified == False
+            and not self.is_verified
         ):
             raise ValueError(
                 "physical contact report must be verified"
@@ -37,7 +39,7 @@ class Station(BaseModel):
                 "telepathic contact requires at least 3 witnesses"
             )
         if (
-            self.signal_strength >7.0
+            self.signal_strength > 7.0
             and not self.message_received
         ):
             raise ValueError(
@@ -45,13 +47,15 @@ class Station(BaseModel):
             )
         return self
 
-def alien(data: dict) -> None:
+
+def alien(data: dict[str, Any]) -> None:
     print("===========================")
     try:
-        user = Station(**data)
+        user = AlienContact(**data)
         print("Valid contact report:")
         print(f"ID: {user.contact_id}")
         print(f"Type: {user.contact_type.value}")
+        print(f"Location: {user.location}")
         print(f"Signal: {user.signal_strength}/10")
         print(f"Duration: {user.duration_minutes} minutes")
         print(f"Witnesses: {user.witness_count}")
@@ -87,6 +91,7 @@ def main() -> None:
         "witness_count": 2,
         "message_received": "Greetings from Zeta Reticuli"
     })
+
 
 if __name__ == "__main__":
     main()

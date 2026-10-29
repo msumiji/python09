@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, ValidationError
 from datetime import datetime
+from typing import Any
 
 
 class Station(BaseModel):
@@ -13,7 +14,7 @@ class Station(BaseModel):
     notes: str = Field(max_length=200)
 
 
-def show_station(data: dict) -> None:
+def show_station(data: dict[str, Any]) -> None:
     print("===========================")
     try:
         user = Station(**data)

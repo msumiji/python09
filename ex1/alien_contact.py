@@ -12,18 +12,22 @@ class ContactType(Enum):
 
 
 class AlienContact(BaseModel):
-    contact_id: str = Field(min_length=5, max_length=15, pattern=r"^AC")
+    contact_id: str = Field(min_length=5, max_length=15)
     timestamp: datetime
     location: str = Field(min_length=3, max_length=100)
     contact_type: ContactType
     signal_strength: float = Field(ge=0.0, le=10.0)
     duration_minutes: int = Field(ge=1, le=1440)
     witness_count: int = Field(ge=1, le=100)
-    message_received: str = Field(max_length=200)
+    message_received: str | None = Field(default=None, max_length=500)
     is_verified: bool = False
 
     @model_validator(mode='after')
     def validate_contact_rules(self) -> "AlienContact":
+        if not self.contact_id.startswith("AC"):
+            raise ValueError(
+                "contact_id must start with 'AC'"
+            )
         if (
             self.contact_type == ContactType.PHYSICAL
             and not self.is_verified
@@ -90,6 +94,17 @@ def main() -> None:
         "duration_minutes": 45,
         "witness_count": 2,
         "message_received": "Greetings from Zeta Reticuli"
+    })
+    alien({
+        "contact_id": "AC_2024_001",
+        "timestamp": "2024-01-20T00:00:00",
+        "location": "Atacama Desert, Chile",
+        "contact_type": "visual",
+        "signal_strength": 9.6,
+        "duration_minutes": 99,
+        "witness_count": 11,
+        "message_received": "Greetings from Zeta Reticuli",
+        "is_verified": False
     })
 
 
